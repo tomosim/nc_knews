@@ -5,6 +5,10 @@ exports.up = function(knex, Promise) {
     articlesTable.string("article_title");
     articlesTable.string("article_body");
     articlesTable
+      .string("article_topic")
+      .references("topics.topic_slug")
+      .unsigned();
+    articlesTable
       .integer("article_created_by")
       .references("users.user_id")
       .unsigned();
