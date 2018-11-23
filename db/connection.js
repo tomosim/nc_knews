@@ -1,5 +1,5 @@
-NODE_ENV = process.env.NODE_ENV || "dev";
+NODE_ENV = process.env.NODE_ENV || "development";
 const config = require("../config")[NODE_ENV];
-const connection = require("knex")(config);
+const knex = require("knex");
 
-module.exports = connection;
+module.exports = knex(config);
