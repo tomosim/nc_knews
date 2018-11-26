@@ -20,14 +20,13 @@ const formatUserData = userData => {
 };
 
 const formatArticleData = (articleData, topicRows, userRows) => {
-  console.log(topicRows);
   return articleData.map(articleDatum => {
     return {
       article_title: articleDatum.title,
       article_body: articleDatum.body,
-      article_created_at: moment(articleDatum.article_created_at),
+      article_created_at: moment(articleDatum.created_at),
       article_created_by: userRows.find(
-        user => user.username === articleDatum.article_created_by
+        user => user.user_username === articleDatum.created_by
       ).user_id,
       article_topic: topicRows.find(
         topic => topic.topic_slug === articleDatum.topic
@@ -36,4 +35,25 @@ const formatArticleData = (articleData, topicRows, userRows) => {
   });
 };
 
-module.exports = { formatTopicData, formatUserData, formatArticleData };
+const formatCommentData = (commentData, userRows, articleRows) => {
+  return commentData.map(commentDatum => {
+    return {
+      comment_body: commentDatum.body,
+      comment_created_at: moment(commentDatum.created_at),
+      comment_votes: commentDatum.votes,
+      comment_belongs_to: articleRows.find(
+        article => article.article_title === commentDatum.belongs_to
+      ).article_id,
+      comment_created_by: userRows.find(
+        user => user.user_username === commentDatum.created_by
+      ).user_id
+    };
+  });
+};
+
+module.exports = {
+  formatTopicData,
+  formatUserData,
+  formatArticleData,
+  formatCommentData
+};

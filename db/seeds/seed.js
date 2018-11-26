@@ -2,10 +2,11 @@ const { topicData, userData, articleData, commentData } = require("../data");
 const {
   formatTopicData,
   formatUserData,
-  formatArticleData
+  formatArticleData,
+  formatCommentData
 } = require("../utils");
+
 exports.seed = function(knex, Promise) {
-  // Deletes ALL existing entries
   return knex.migrate
     .rollback()
     .then(() => knex.migrate.latest())
@@ -26,5 +27,10 @@ exports.seed = function(knex, Promise) {
         .returning("*");
       return Promise.all([topicRows, userRows, articlePromise]);
     })
-    .then(console.log);
+    .then(([topicRows, userRows, articleRows]) => {
+      const commentPromise = knex("comments")
+        .insert(formatCommentData(commentData, userRows, articleRows))
+        .returning("*");
+      return Promise.all([topicRows, userRows, articleRows, commentPromise]);
+    });
 };
