@@ -1,36 +1,36 @@
-const { topicData, userData, articleData, commentData } = require("../data");
+const {
+  topicData, userData, articleData, commentData,
+} = require('../data');
 const {
   formatTopicData,
   formatUserData,
   formatArticleData,
-  formatCommentData
-} = require("../utils");
+  formatCommentData,
+} = require('../utils');
 
-exports.seed = function(knex, Promise) {
+exports.seed = function (knex, Promise) {
   return knex.migrate
-    .rollback()
-    .then(() => knex.migrate.latest())
-    .then(() =>
-      knex("topics")
-        .insert(formatTopicData(topicData))
-        .returning("*")
-    )
-    .then(topicsRows => {
-      const usersPromise = knex("users")
+    .rollback({ directory: './db/migrations' })
+    .then(() => knex.migrate.latest({ directory: './db/migrations' }))
+    .then(() => knex('topics')
+      .insert(formatTopicData(topicData))
+      .returning('*'))
+    .then((topicsRows) => {
+      const usersPromise = knex('users')
         .insert(formatUserData(userData))
-        .returning("*");
+        .returning('*');
       return Promise.all([topicsRows, usersPromise]);
     })
     .then(([topicRows, userRows]) => {
-      const articlePromise = knex("articles")
+      const articlePromise = knex('articles')
         .insert(formatArticleData(articleData, topicRows, userRows))
-        .returning("*");
+        .returning('*');
       return Promise.all([topicRows, userRows, articlePromise]);
     })
     .then(([topicRows, userRows, articleRows]) => {
-      const commentPromise = knex("comments")
+      const commentPromise = knex('comments')
         .insert(formatCommentData(commentData, userRows, articleRows))
-        .returning("*");
+        .returning('*');
       return Promise.all([topicRows, userRows, articleRows, commentPromise]);
     });
 };
