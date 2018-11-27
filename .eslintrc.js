@@ -1,5 +1,5 @@
 module.exports = {
-    "extends": "airbnb-base",
+    "extends": ["prettier", "airbnb-base"],
     "env": {
         "mocha": true
     },
@@ -14,7 +14,9 @@ module.exports = {
         "func-names": 0,
         "arrow-body-style": ['warn'],
         "no-param-reassign": 0,
-        "prefer-promise-reject-errors": 0,
-    }
+        "prefer-promise-reject-errors": 0
+        
+    },
+    "plugins": ["prettier"]
 
 };
