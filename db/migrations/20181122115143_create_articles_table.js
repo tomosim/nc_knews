@@ -11,7 +11,7 @@ exports.up = function (knex, Promise) {
       .integer('article_created_by')
       .references('users.user_id')
       .unsigned();
-    articlesTable.string('article_created_at').defaultTo(knex.fn.now(6));
+    articlesTable.date('article_created_at').defaultTo(knex.fn.now(6));
   });
 };
 
