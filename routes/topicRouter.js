@@ -1,6 +1,7 @@
 const topicRouter = require('express').Router();
-const { getTopics } = require('../controllers/topics');
+const { getTopics, addTopic, getArticlesByTopic } = require('../controllers/topics');
 
-topicRouter.route('/').get(getTopics);
+topicRouter.route('/').get(getTopics).post(addTopic);
+topicRouter.route('/:topic_slug/articles').get(getArticlesByTopic);
 
 module.exports = topicRouter;

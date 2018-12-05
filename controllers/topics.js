@@ -15,12 +15,28 @@ const getTopics = (req, res, next) => {
   return myPromise.then(topics => res.send({ topics })).catch(next);
 };
 
-// const addTopic = (req, res, next) => {
-//   console.log(req.body);
-//   const newTopic = req.body;
-//   return connection('topics')
-//     .insert(newTopic)
-//     .catch(console.log);
-// };
+const addTopic = (req, res, next) => {
+  const topic = req.body;
+  return connection('topics')
+    .insert(topic)
+    .returning('*').then(newTopic => res.status(201).send({ newTopic: newTopic[0] }))
+    .catch(next);
+};
 
-module.exports = { getTopics };
+const getArticlesByTopic = (req, res, next) => {
+  const { topic_slug } = req.params;
+  const {
+    limit, offset, orderBy, direction,
+  } = req.query;
+  connection('articles')
+    .where({ article_topic: topic_slug })
+    .limit(limit || 10)
+    .offset(offset || 0)
+    .orderBy(
+      orderBy || 'article_title',
+      direction === 'desc' ? 'desc' : 'asc',
+    )
+    .then(articles => res.send({ articles }))
+    .catch(next);
+};
+module.exports = { getTopics, addTopic, getArticlesByTopic };
