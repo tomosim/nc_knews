@@ -2,13 +2,13 @@ const express = require('express');
 
 const app = express();
 const bodyParser = require('body-parser');
+const { handle400s, handle500s } = require('./errors');
 const apiRouter = require('./routes/apiRouter');
 
 app.use(bodyParser.json());
 
 app.use('/api', apiRouter);
 
-app.use((err, req, res, next) => {
-  res.status(500).send({ msg: 'internal server error' });
-});
+app.use(handle400s);
+app.use(handle500s);
 module.exports = app;
