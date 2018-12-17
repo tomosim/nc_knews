@@ -1,5 +1,10 @@
 const connection = require('../db/connection');
 
+
+const getCommentCount = article_id => connection('comments')
+  .count('comment_id').where('comments_belongs_to', '=', article_id);
+
+
 const getTopics = (req, res, next) => {
   const {
     limit, offset, orderBy, direction, searchTerm,
@@ -28,7 +33,11 @@ const getArticlesByTopic = (req, res, next) => {
   const {
     limit, offset, orderBy, direction,
   } = req.query;
-  connection('articles')
+  return connection('articles')
+    .leftJoin('comments', 'articles.article_id', 'comments.comment_belongs_to')
+    .select('article_id', 'article_topic', 'article_title', 'article_body', 'article_created_by', 'article_created_at', 'article_votes')
+    .groupBy('articles.article_id')
+    .count('articles.article_id AS comment_count')
     .where({ article_topic: topic_slug })
     .limit(limit || 10)
     .offset(offset || 0)
@@ -37,6 +46,23 @@ const getArticlesByTopic = (req, res, next) => {
       direction === 'desc' ? 'desc' : 'asc',
     )
     .then(articles => res.send({ articles }))
+    .catch(console.log);
+};
+
+const addArticle = (req, res, next) => {
+  const { topic_slug } = req.params;
+  const article = req.body;
+  console.log(article);
+  return connection('articles')
+    .insert({ article_topic: topic_slug, ...article })
+    .returning('*')
+    .then((newArticle) => {
+      console.log(newArticle);
+      res.status(201).send({ newArticle: { article_comment_count: 0, ...newArticle[0] } });
+    })
     .catch(next);
 };
-module.exports = { getTopics, addTopic, getArticlesByTopic };
+
+module.exports = {
+  getTopics, addTopic, getArticlesByTopic, addArticle,
+};
