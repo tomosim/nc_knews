@@ -1,10 +1,5 @@
 const connection = require('../db/connection');
 
-
-const getCommentCount = article_id => connection('comments')
-  .count('comment_id').where('comments_belongs_to', '=', article_id);
-
-
 const getTopics = (req, res, next) => {
   const {
     limit, offset, orderBy, direction, searchTerm,
@@ -46,19 +41,17 @@ const getArticlesByTopic = (req, res, next) => {
       direction === 'desc' ? 'desc' : 'asc',
     )
     .then(articles => res.send({ articles }))
-    .catch(console.log);
+    .catch(next);
 };
 
 const addArticle = (req, res, next) => {
   const { topic_slug } = req.params;
   const article = req.body;
-  console.log(article);
   return connection('articles')
     .insert({ article_topic: topic_slug, ...article })
     .returning('*')
     .then((newArticle) => {
-      console.log(newArticle);
-      res.status(201).send({ newArticle: { article_comment_count: 0, ...newArticle[0] } });
+      res.status(201).send({ newArticle: { comment_count: 0, ...newArticle[0] } });
     })
     .catch(next);
 };

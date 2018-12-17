@@ -4,8 +4,13 @@ const handle400s = (err, req, res, next) => {
   } else next(err);
 };
 
+const handle404s = (err, req, res, next) => {
+  if (err.code === '23503') res.status(404).send({ msg: 'Not found' });
+  else next(err);
+};
+
 const handle500s = (err, req, res, next) => {
   res.status(500).send({ msg: 'internal server error' });
 };
 
-module.exports = { handle400s, handle500s };
+module.exports = { handle400s, handle404s, handle500s };

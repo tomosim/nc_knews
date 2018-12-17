@@ -53,7 +53,7 @@ describe('/api', () => {
       }));
       it('GET responds with all articles of a certain topic when no queries given', () => request.get('/api/topics/cats/articles').expect(200).then((res) => {
         expect(res.body.articles).to.have.length(1);
-        expect(res.body.articles[0]).to.have.all.keys('article_id', 'article_title', 'article_body', 'article_topic', 'article_created_by', 'article_created_at', 'article_comment_count');
+        expect(res.body.articles[0]).to.have.all.keys('article_id', 'article_title', 'article_votes', 'article_body', 'article_topic', 'article_created_by', 'article_created_at', 'comment_count');
       }));
       it('GET responds with an array of articles limitted by a limit query', () => request.get('/api/topics/mitch/articles?limit=1').expect(200).then((res) => {
         expect(res.body.articles).to.have.length(1);
@@ -71,13 +71,18 @@ describe('/api', () => {
       }));
       it('POST adds a new topic object to the database and responds with said topic object and a status of 201', () => request.post('/api/topics/mitch/articles')
         .send({ article_title: 'new article', article_body: 'article content goes here', article_created_by: 1 }).expect(201).then((res) => {
-          expect(res.body.newArticle).to.have.all.keys('article_id', 'article_title', 'article_body', 'article_topic', 'article_created_by', 'article_created_at');
+          expect(res.body.newArticle).to.have.all.keys('article_id', 'article_title', 'article_body', 'article_topic', 'article_created_by', 'article_created_at', 'comment_count', 'article_votes');
           expect(res.body.newArticle.article_title).to.equal('new article');
           expect(res.body.newArticle.article_created_by).to.equal(1);
         }));
-      // it('POST responds with a status of 400 when the topic object is not in the correct format', () => request.post('/api/topics/mitch/articles').send({ bad: 'request' }).expect(400).then((res) => {
-      //   expect(res.body.msg).to.equal('Bad request');
-      // }));
+      it('POST responds with a status of 400 when the topic object is not in the correct format', () => request.post('/api/topics/mitch/articles')
+        .send({ bad: 'request' }).expect(400).then((res) => {
+          expect(res.body.msg).to.equal('Bad request');
+        }));
+      it('POST responds with a status of 404 when the topic parameter doesn\'t exist', () => request.post('/api/topics/iamnotatopicandhopefullyneverwillbebecausethatwouldbreakthistest/articles')
+        .send({ article_title: 'new article', article_body: 'article content goes here', article_created_by: 1 }).expect(404).then((res) => {
+          expect(res.body.msg).to.equal('Not found');
+        }));
     });
   });
 });
