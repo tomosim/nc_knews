@@ -10,6 +10,7 @@ module.exports = {
                 "argsIgnorePattern": "Promise|res|next|^err"
             }
         ],
+
         "camelcase": 0,
         "func-names": 0,
         "arrow-body-style": ['warn'],
