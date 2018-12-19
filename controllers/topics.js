@@ -2,16 +2,16 @@ const connection = require('../db/connection');
 
 const getTopics = (req, res, next) => {
   const {
-    limit, offset, orderBy, direction, searchTerm,
+    limit, p, orderBy, direction, search_term,
   } = req.query;
   const myPromise = connection('topics')
     .limit(limit || 10)
-    .offset(offset || 0)
+    .offset(p * limit || 0)
     .orderBy(
       orderBy || 'topic_description',
       direction === 'desc' ? 'desc' : 'asc',
     );
-  if (searchTerm) myPromise.where('topic_slug', 'like', `%${searchTerm.toLowerCase()}%`);
+  if (search_term) myPromise.where('topic_slug', 'like', `%${search_term.toLowerCase()}%`);
   return myPromise.then(topics => res.send({ topics })).catch(next);
 };
 
@@ -26,7 +26,7 @@ const addTopic = (req, res, next) => {
 const getArticlesByTopic = (req, res, next) => {
   const { topic_slug } = req.params;
   const {
-    limit, offset, orderBy, direction,
+    limit, p, orderBy, direction,
   } = req.query;
   return connection('articles')
     .leftJoin('comments', 'articles.article_id', 'comments.comment_belongs_to')
@@ -35,7 +35,7 @@ const getArticlesByTopic = (req, res, next) => {
     .count('articles.article_id AS comment_count')
     .where({ article_topic: topic_slug })
     .limit(limit || 10)
-    .offset(offset || 0)
+    .offset(p * limit || 0)
     .orderBy(
       orderBy || 'article_title',
       direction === 'desc' ? 'desc' : 'asc',
