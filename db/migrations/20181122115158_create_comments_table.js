@@ -5,7 +5,8 @@ exports.up = function (knex, Promise) {
     commentsTable.integer('comment_votes').defaultTo(0);
     commentsTable
       .integer('comment_belongs_to')
-      .references('articles.article_id');
+      .references('articles.article_id')
+      .onDelete('cascade');
     commentsTable.integer('comment_created_by').references('users.user_id');
     commentsTable.string('comment_created_at').defaultTo(knex.fn.now(6));
   });
