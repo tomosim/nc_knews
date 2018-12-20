@@ -146,7 +146,7 @@ describe('/api', () => {
           expect(response.body.msg).to.equal('Article not found');
         });
       }));
-      describe.only('/comments', () => {
+      describe('/comments', () => {
         it('GET responds with comment(s) with all the correct properties', () => request.get('/api/articles/1/comments').expect(200).then((res) => {
           expect(res.body.comments[0]).to.have.all.keys('comment_id', 'comment_votes', 'comment_created_by', 'comment_created_at', 'comment_body', 'comment_belongs_to');
         }));
@@ -184,6 +184,18 @@ describe('/api', () => {
               'comment_belongs_to',
             );
             expect(res.body.comment[0].comment_belongs_to).to.not.equal(null);
+          });
+        });
+        it.only('POST responds with status 400 when the newComment object is in the wrong format', () => {
+          const newComment = { thisObject: 'is rubbish' };
+          return request.post('/api/articles/1/comments').send({ newComment }).expect(400).then((res) => {
+            expect(res.body.msg).to.equal('Bad request');
+          });
+        });
+        it.only('POST responds with status 404 when the article_id does not exist', () => {
+          const newComment = { comment_body: 'test comment', comment_created_by: 1 };
+          return request.post('/api/articles/100/comments').send({ newComment }).expect(404).then((res) => {
+            expect(res.body.msg).to.equal('Not found');
           });
         });
       });

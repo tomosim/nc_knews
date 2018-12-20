@@ -86,7 +86,8 @@ const addComment = (req, res, next) => {
     .returning('*')
     .then((comment) => {
       res.status(201).send({ comment });
-    });
+    })
+    .catch(next);
 };
 
 module.exports = {
