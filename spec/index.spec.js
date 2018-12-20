@@ -171,6 +171,21 @@ describe('/api', () => {
         it('GET responds with status 404 when the article does not exist', () => request.get('/api/articles/100/comments').expect(404).then((res) => {
           expect(res.body.msg).to.equal('Article not found');
         }));
+        it('POST adds a new comment to the db corresponding to a particular article and returns said comment', () => {
+          const newComment = { comment_body: 'test comment', comment_created_by: 1 };
+          return request.post('/api/articles/1/comments').send({ newComment }).expect(201).then((res) => {
+            expect(res.body.comment).to.have.length(1);
+            expect(res.body.comment[0]).to.have.all.keys(
+              'comment_id',
+              'comment_votes',
+              'comment_created_by',
+              'comment_created_at',
+              'comment_body',
+              'comment_belongs_to',
+            );
+            expect(res.body.comment[0].comment_belongs_to).to.not.equal(null);
+          });
+        });
       });
     });
   });

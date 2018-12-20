@@ -78,6 +78,22 @@ const getCommentsByArticleId = (req, res, next) => {
     .catch(next);
 };
 
+const addComment = (req, res, next) => {
+  const { newComment } = req.body;
+  const { article_id } = req.params;
+  return connection('comments')
+    .insert({ ...newComment, comment_belongs_to: article_id })
+    .returning('*')
+    .then((comment) => {
+      res.status(201).send({ comment });
+    });
+};
+
 module.exports = {
-  getArticles, getArticlesById, updateArticleVotes, deleteArticle, getCommentsByArticleId,
+  getArticles,
+  getArticlesById,
+  updateArticleVotes,
+  deleteArticle,
+  getCommentsByArticleId,
+  addComment,
 };
