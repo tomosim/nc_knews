@@ -90,6 +90,20 @@ const addComment = (req, res, next) => {
     .catch(next);
 };
 
+const voteOnComment = (req, res, next) => {
+  const { comment_id } = req.params;
+  const { vote_dir } = req.query;
+  return connection('comments')
+    .where({ comment_id })
+    .increment('comment_votes', vote_dir === 'up' ? +1 : -1)
+    .returning('*')
+    .then((comment) => {
+      if (comment.length === 0) next({ status: 404, msg: 'Comment not found.' });
+      else res.status(204).end();
+    })
+    .catch(next);
+};
+
 module.exports = {
   getArticles,
   getArticlesById,
@@ -97,4 +111,5 @@ module.exports = {
   deleteArticle,
   getCommentsByArticleId,
   addComment,
+  voteOnComment,
 };

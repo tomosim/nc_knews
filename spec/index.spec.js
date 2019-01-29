@@ -186,17 +186,29 @@ describe('/api', () => {
             expect(res.body.comment[0].comment_belongs_to).to.not.equal(null);
           });
         });
-        it.only('POST responds with status 400 when the newComment object is in the wrong format', () => {
+        it('POST responds with status 400 when the newComment object is in the wrong format', () => {
           const newComment = { thisObject: 'is rubbish' };
           return request.post('/api/articles/1/comments').send({ newComment }).expect(400).then((res) => {
             expect(res.body.msg).to.equal('Bad request');
           });
         });
-        it.only('POST responds with status 404 when the article_id does not exist', () => {
+        it('POST responds with status 404 when the article_id does not exist', () => {
           const newComment = { comment_body: 'test comment', comment_created_by: 1 };
           return request.post('/api/articles/100/comments').send({ newComment }).expect(404).then((res) => {
             expect(res.body.msg).to.equal('Not found');
           });
+        });
+        describe.only('/:comment_id', () => {
+          it('PATCH responds with a 204 indicating that the certain adjustment has been made to the database.',
+            () => request.patch('/api/articles/9/comments/18?vote_dir=down')
+              .expect(204));
+          it('PATCH will increment the votes on an article either +1 or -1 depending on the "vote_dir" query',
+            () => request.patch('/api/articles/9/comments/18?vote_dir=down')
+              .then(() => request.get('/api/articles/9/comments')).then((res) => {
+                expect(res.body.comments[0].comment_votes).to.equal(0);
+              }));
+          it('PATCH will respond with a 404 when the comment does not exist', () => request.patch('/api/articles/9/comments/999?vote_dir=up')
+            .expect(404));
         });
       });
     });
