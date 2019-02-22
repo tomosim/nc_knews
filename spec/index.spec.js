@@ -45,9 +45,10 @@ describe('/api', () => {
         expect(res.body.newTopic).to.have.all.keys('topic_slug', 'topic_description');
         expect(res.body.newTopic.topic_description).to.equal('new topic');
       }));
-    it('POST responds with a status of 400 when the topic object is not in the correct format', () => request.post('/api/topics').send({ bad: 'request' }).expect(400).then((res) => {
-      expect(res.body.msg).to.equal('Bad request');
-    }));
+    it('POST responds with a status of 400 when the topic object is not in the correct format',
+      () => request.post('/api/topics').send({ bad: 'request' }).expect(400).then((res) => {
+        expect(res.body.msg).to.equal('Bad request');
+      }));
     describe('/:topic_slug/articles', () => {
       it('GET responds with an empty articles array when there are no articles relating to the topic', () => request.get('/api/topics/nothinghere/articles').expect(200).then((res) => {
         expect(res.body.articles).to.have.length(0);
@@ -70,17 +71,20 @@ describe('/api', () => {
           .article_title[0].charCodeAt();
         expect(firstLetter).to.be.lessThan(secondLetter);
       }));
-      it('POST adds a new topic object to the database and responds with said topic object and a status of 201', () => request.post('/api/topics/mitch/articles')
-        .send({ article_title: 'new article', article_body: 'article content goes here', article_created_by: 1 }).expect(201).then((res) => {
-          expect(res.body.newArticle).to.have.all.keys('article_id', 'article_title', 'article_body', 'article_topic', 'article_created_by', 'article_created_at', 'comment_count', 'article_votes');
-          expect(res.body.newArticle.article_title).to.equal('new article');
-          expect(res.body.newArticle.article_created_by).to.equal(1);
-        }));
-      it('POST responds with a status of 400 when the topic object is not in the correct format', () => request.post('/api/topics/mitch/articles')
+      it('POST adds a new article object to the database and responds with said article object and a status of 201', () => {
+        const newArticle = { article_title: 'new article', article_body: 'article content goes here', article_created_by: 1 };
+        request.post('/api/topics/mitch/articles')
+          .send(newArticle).expect(201).then((res) => {
+            expect(res.body.newArticle).to.have.all.keys('article_id', 'article_title', 'article_body', 'article_topic', 'article_created_by', 'article_created_at', 'comment_count', 'article_votes');
+            expect(res.body.newArticle.article_title).to.equal('new article');
+            expect(res.body.newArticle.article_created_by).to.equal(1);
+          });
+      });
+      it('POST responds with a status of 400 when the article object is not in the correct format', () => request.post('/api/topics/mitch/articles')
         .send({ bad: 'request' }).expect(400).then((res) => {
           expect(res.body.msg).to.equal('Bad request');
         }));
-      it('POST responds with a status of 404 when the topic parameter doesn\'t exist', () => request.post('/api/topics/iamnotatopicandhopefullyneverwillbebecausethatwouldbreakthistest/articles')
+      it('POST responds with a status of 404 when the article parameter doesn\'t exist', () => request.post('/api/topics/iamnotatopicandhopefullyneverwillbebecausethatwouldbreakthistest/articles')
         .send({ article_title: 'new article', article_body: 'article content goes here', article_created_by: 1 }).expect(404).then((res) => {
           expect(res.body.msg).to.equal('Not found');
         }));
@@ -168,6 +172,16 @@ describe('/api', () => {
         it('GET responds with an array of comments sorted either in ascending order or descending (defaults to ascending)', () => request.get('/api/articles/1/comments?direction=desc').expect(200).then((res) => {
           expect(res.body.comments[0].comment_id).to.equal(15);
         }));
+        it('GET resposonds with status 200 and an empty array when the article does exists but has no comments yet', () => {
+          const newArticle = { article_title: 'new article', article_body: 'article content goes here', article_created_by: 1 };
+          return request.post('/api/topics/mitch/articles')
+            .send(newArticle).then((article_res) => {
+              const { article_id } = article_res.body.newArticle;
+              return request.get(`/api/articles/${article_id}/comments`).expect(200).then((comment_res) => {
+                expect(comment_res.body.comments).to.eql([]);
+              });
+            });
+        });
         it('GET responds with status 404 when the article does not exist', () => request.get('/api/articles/100/comments').expect(404).then((res) => {
           expect(res.body.msg).to.equal('Article not found');
         }));
@@ -198,17 +212,30 @@ describe('/api', () => {
             expect(res.body.msg).to.equal('Not found');
           });
         });
-        describe.only('/:comment_id', () => {
-          it('PATCH responds with a 204 indicating that the certain adjustment has been made to the database.',
-            () => request.patch('/api/articles/9/comments/18?vote_dir=down')
-              .expect(204));
+        describe('/:comment_id', () => {
+          it('PATCH will accept an object like { inc_votes: 1 } and update the votes property of the selected article with the inc_votes value',
+            () => request.patch('/api/articles/9/comments/18')
+              .send({ inc_votes: 1 })
+              .expect(202)
+              .then((res) => {
+                expect(res.body.msg).to.equal('Comment updated');
+              }));
           it('PATCH will increment the votes on an article either +1 or -1 depending on the "vote_dir" query',
-            () => request.patch('/api/articles/9/comments/18?vote_dir=down')
+            () => request.patch('/api/articles/9/comments/18').send({ inc_votes: -1 })
               .then(() => request.get('/api/articles/9/comments')).then((res) => {
                 expect(res.body.comments[0].comment_votes).to.equal(0);
               }));
-          it('PATCH will respond with a 404 when the comment does not exist', () => request.patch('/api/articles/9/comments/999?vote_dir=up')
+          it('PATCH will respond with a 404 when the comment does not exist', () => request.patch('/api/articles/9/comments/999').send({ inc_votes: -1 })
             .expect(404));
+          it('PATCH will respond with a 400 when the inc object is in the wrong format', () => request.patch('/api/articles/9/comments/18').send({ something: 'meaningless' })
+            .expect(400));
+          it('DELETE will delete the comment and return an empty object', () => request.get('/api/articles/9/comments').then(res => expect(res.body.comments).to.have.length(1)).then(() => request.delete('/api/articles/9/comments/18').expect(204).then((res) => {
+            expect(res.body).to.eql({});
+          }))
+            .then(() => request.get('/api/articles/9/comments').then((res) => {
+              expect(res.body.comments).to.have.length(0);
+            })));
+          it('DELETE respond with 404 when no comment exists', () => request.delete('/api/articles/9/comments/999').expect(404));
         });
       });
     });
