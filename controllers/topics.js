@@ -28,7 +28,8 @@ const getArticlesByTopic = (req, res, next) => {
   const {
     limit, p, orderBy, direction,
   } = req.query;
-  return connection('articles')
+  const topicPromise = connection('topics').where({ topic_slug });
+  const articlePromise = connection('articles')
     .leftJoin('comments', 'articles.article_id', 'comments.comment_belongs_to')
     .select('article_id', 'article_topic', 'article_title', 'article_body', 'article_created_by', 'article_created_at', 'article_votes')
     .groupBy('articles.article_id')
@@ -39,8 +40,11 @@ const getArticlesByTopic = (req, res, next) => {
     .orderBy(
       orderBy || 'article_title',
       direction === 'desc' ? 'desc' : 'asc',
-    )
-    .then(articles => res.send({ articles }))
+    );
+  return Promise.all([topicPromise, articlePromise]).then(([topics, articles]) => {
+    if (topics.length === 0) next({ status: 404, msg: 'Topic not found' });
+    else res.send({ articles });
+  })
     .catch(next);
 };
 

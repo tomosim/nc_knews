@@ -50,14 +50,17 @@ describe('/api', () => {
         expect(res.body.msg).to.equal('Bad request');
       }));
     describe('/:topic_slug/articles', () => {
-      it('GET responds with an empty articles array when there are no articles relating to the topic', () => request.get('/api/topics/nothinghere/articles').expect(200).then((res) => {
-        expect(res.body.articles).to.have.length(0);
+      it('GET responds with an empty articles array when there are no articles relating to the topic', () => request.post('/api/topics').send({ topic_slug: 'topic', topic_description: 'new topic' }).expect(201).then(() => request.get('/api/topics/topic/articles').expect(200).then((res) => {
+        expect(res.body.articles).to.eql([]);
+      })));
+      it('GET responds with a 404 when the topic does not exist', () => request.get('/api/topics/nothinghere/articles').expect(404).then((res) => {
+        expect(res.body.msg).to.equal('Topic not found');
       }));
       it('GET responds with all articles of a certain topic when no queries given', () => request.get('/api/topics/cats/articles').expect(200).then((res) => {
         expect(res.body.articles).to.have.length(1);
         expect(res.body.articles[0]).to.have.all.keys('article_id', 'article_title', 'article_votes', 'article_body', 'article_topic', 'article_created_by', 'article_created_at', 'comment_count');
       }));
-      it('GET responds with an array of articles limitted by a limit query', () => request.get('/api/topics/mitch/articles?limit=1').expect(200).then((res) => {
+      it('GET responds with an array of articles limited by a limit query', () => request.get('/api/topics/mitch/articles?limit=1').expect(200).then((res) => {
         expect(res.body.articles).to.have.length(1);
       }));
       it('GET responds with an array of articles in descending when direction query is "desc"', () => request.get('/api/topics/mitch/articles?direction=desc').expect(200).then((res) => {
