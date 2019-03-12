@@ -19,7 +19,7 @@ describe('/api', () => {
       expect(res.body.topics).to.have.length(2);
       expect(res.body.topics[0]).to.have.all.keys('topic_slug', 'topic_description');
     }));
-    it('GET responds with an array of topics limitted by a limit query', () => request.get('/api/topics?limit=1').expect(200).then((res) => {
+    it('GET responds with an array of topics limited by a limit query', () => request.get('/api/topics?limit=1').expect(200).then((res) => {
       expect(res.body.topics).to.have.length(1);
     }));
     it('GET responds with an array of topics in descending when direction query is "desc"', () => request.get('/api/topics?direction=desc').expect(200).then((res) => {
@@ -98,7 +98,7 @@ describe('/api', () => {
       expect(res.body.articles).to.have.length(10);
       expect(res.body.articles[0]).to.have.all.keys('article_id', 'article_topic', 'article_title', 'article_body', 'article_created_by', 'article_created_at', 'article_votes', 'comment_count');
     }));
-    it('GET responds with an array of articles limitted by a limit query', () => request.get('/api/articles?limit=1').expect(200).then((res) => {
+    it('GET responds with an array of articles limited by a limit query', () => request.get('/api/articles?limit=1').expect(200).then((res) => {
       expect(res.body.articles).to.have.length(1);
     }));
     it('GET responds with an array of articles in descending when direction query is "desc"', () => request.get('/api/articles?direction=desc').expect(200).then((res) => {
@@ -124,10 +124,10 @@ describe('/api', () => {
     }));
     describe('/:article_id', () => {
       it('GET responds with an article with all the right properties', () => request.get('/api/articles/2').expect(200).then((res) => {
-        expect(res.body.article[0]).to.have.all.keys('article_id', 'article_topic', 'article_title', 'article_body', 'article_created_by', 'article_created_at', 'article_votes', 'comment_count');
+        expect(res.body.article).to.have.all.keys('article_id', 'article_topic', 'article_title', 'article_body', 'article_created_by', 'article_created_at', 'article_votes', 'comment_count');
       }));
       it('GET responds with the article whose id corresponds to the article_id parameter', () => request.get('/api/articles/3').expect(200).then((res) => {
-        expect(res.body.article[0].article_id).to.equal(3);
+        expect(res.body.article.article_id).to.equal(3);
       }));
       it('GET responds with a 404 when the article_id does not correspond to any articles in the db', () => request.get('/api/articles/100').expect(404).then((res) => {
         expect(res.body.msg).to.equal('Article not found');
@@ -136,7 +136,7 @@ describe('/api', () => {
         .send({ inc_votes: 1 }).expect(202).then((res) => {
           expect(res.body.msg).to.equal('Article updated');
           return request.get('/api/articles/1').then((response) => {
-            expect(response.body.article[0].article_votes).to.equal(1);
+            expect(response.body.article.article_votes).to.equal(1);
           });
         }));
       it('PATCH will respond with a 400 id the inc_votes object is in the wrong format', () => request.patch('/api/articles/1')
@@ -241,6 +241,21 @@ describe('/api', () => {
           it('DELETE respond with 404 when no comment exists', () => request.delete('/api/articles/9/comments/999').expect(404));
         });
       });
+    });
+  });
+  describe.only('/users', () => {
+    it('GET responds with an array of all users', () => request.get('/api/users').expect(200).then((res) => {
+      expect(res.body.users).to.have.length(3);
+      expect(res.body.users[0]).to.have.all.keys('user_id', 'user_username', 'user_name', 'user_avatar_url');
+    }));
+    describe('/:id', () => {
+      it('GET responds with a single user object based on the id given', () => request.get('/api/users/1').expect(200).then((res) => {
+        expect(res.body.user).to.have.all.keys('user_id', 'user_username', 'user_name', 'user_avatar_url');
+        expect(res.body.user.user_id).to.equal(1);
+      }));
+      it('GET responds with status 404 when the user id doesn\'t exist', () => request.get('/api/users/999').expect(404).then((res) => {
+        expect(res.body.msg).to.equal('User not found');
+      }));
     });
   });
 });
