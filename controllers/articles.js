@@ -31,8 +31,8 @@ const getArticlesById = (req, res, next) => {
     .groupBy('articles.article_id')
     .count('articles.article_id AS comment_count')
     .where({ article_id })
-    .then((article) => {
-      if (article.length === 0) next({ status: 404, msg: 'Article not found' });
+    .then(([article]) => {
+      if (!article) next({ status: 404, msg: 'Article not found' });
       else res.send({ article });
     })
     .catch(next);
